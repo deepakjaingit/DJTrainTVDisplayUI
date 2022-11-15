@@ -117,109 +117,46 @@
     <table style="width: 100%;" [cellPadding]="0" [cellSpacing]="0">
       <thead>
         <tr>
-          <th colspan="3" style="text-align: center;">New Delhi Railway Station</th>
+          <th colspan="3" style="text-align: center;">{{header?.TitleMiddle}}</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td style="width: 30%; text-align: left;">13/11/2022</td>
-          <td style="width: 40%;  text-align: center; text-decoration: underline;">Train Arrival/ Depature</td>
-          <td style="width: 30%;text-align: right;">23:40</td>
+          <td style="width: 30%; text-align: left;">{{header?.SubTitleLeft}}
+            <!-- <a href="javascript:void(0)" (click)="changeLang('hi')">Hindi</a>
+          <a href="javascript:void(0)" (click)="changeLang('en')">Eng</a> -->
+          </td>
+          <td style="width: 40%;  text-align: center; text-decoration: underline;">{{header?.SubTitleMiddle}}</td>
+          <td style="width: 30%;text-align: right;">{{now}}</td>
         </tr>
       </tbody>
-      <tfoot style="display: none;">
-        <tr>
-          <td colspan="3">
-            This is title marquee string
-          </td>
-        </tr>
-      </tfoot>
     </table>
   </div>
   <div class="content" role="main">
     <table class="table" [cellPadding]="0" [cellSpacing]="0">
       <thead>
         <tr>
-          <th style="width: 150px;" style="border-top-left-radius: 20px;">
-            Train No
-          </th>
-          <th>
-            Train Name
-          </th>
-          <th style="width: 150px; ">
-            Dep Time
-          </th>
-          <th style="width: 150px;">
-            Status
-          </th>
-          <th style="width: 150px;border-top-right-radius: 20px;">
-            Plateform
+          <th [style.width.%]="col.ColumnWidth" *ngFor="let col of columns">
+            {{col.ColumnCaption}}
           </th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>12345</td>
-          <td>TAJ Exp</td>
-          <td>07:00</td>
-          <td>A</td>
-          <td>01</td>
-        </tr>
-        <tr>
-          <td>12345</td>
-          <td>TAJ Exp</td>
-          <td>07:00</td>
-          <td>A</td>
-          <td>01</td>
-        </tr>
-        <tr>
-          <td>12345</td>
-          <td>TAJ Exp</td>
-          <td>07:00</td>
-          <td>A</td>
-          <td>01</td>
-        </tr>
-        <tr class="red">
-          <td>12345</td>
-          <td>TAJ Exp</td>
-          <td>07:00</td>
-          <td colspan="2">Cancelled</td>
-          <td style="display: none;">01</td>
-        </tr>
-        <tr class="green">
-          <td>12345</td>
-          <td>Samta Express</td>
-          <td>19:00</td>
-          <td>D</td>
-          <td>01</td>
-        </tr>
-        <tr class="red">
-          <td>12345</td>
-          <td>Gatimaan Exp</td>
-          <td>07:00</td>
-          <td colspan="2">Delelyed by 1 Hr</td>
-          <td style="display: none;">01</td>
-        </tr>
-        <tr>
-          <td>12345</td>
-          <td>TAJ Exp</td>
-          <td>07:00</td>
-          <td>A</td>
-          <td>01</td>
-        </tr>
-        <tr class="border-bottom">
-          <td>12345</td>
-          <td>TAJ Exp</td>
-          <td>07:00</td>
-          <td>A</td>
+        <tr *ngFor="let t of trains">
+          <td [innerHTML]="t.TRAIN_NO"></td>
+          <td [innerHTML]="t.TRAIN_NAME"></td>
+          <td [innerHTML]="t.TRAIN_TIME"></td>
+          <td [innerHTML]="t.TRAIN_STATUS"></td>
+          <td [innerHTML]="t.TRAIN_PLATEFORM"></td>
           <td>01</td>
         </tr>
       </tbody>
     </table>
   </div>
-  <div class="footer"> &nbsp;&nbsp;&nbsp;&nbsp; Welcome to New Delhi Railway Status &nbsp;&nbsp;&nbsp;&nbsp;|
-    &nbsp;&nbsp;&nbsp;&nbsp; Samta Express at 19:30 &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp; TAJ Express 12345
-    Delayed
-    by 1 hr</div>
+  <div class="footer">
+    <span style="padding-right: 10px; padding-right: 10px;" *ngFor="let f of footers">
+      {{f.FooterText}} |
+    </span>
+  </div>
 </div>
 <router-outlet></router-outlet>
