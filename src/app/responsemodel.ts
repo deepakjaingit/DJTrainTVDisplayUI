@@ -35,9 +35,16 @@ export interface DesignSetting {
 
 export interface Column {
     ColumnName: string;
-    ColumnCaption: string;
     ColumnWidth: number;
-    ColumnFont: string;
+    ColumnFontSize: string;
+    ColumnFontBold: string;
+    ColumnFontColor: string;
+    ColumnBackColor: string;
+    ColumnHeaderText: string;
+    ColumnHeaderFontSize: string;
+    ColumnHeaderFontBold: string;
+    ColumnHeaderBackColor: string;
+    ColumnHeaderFontColor: string;
     Lang: string;
 }
 

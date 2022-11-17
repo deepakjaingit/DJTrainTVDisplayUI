@@ -3,18 +3,76 @@ import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'
 import { take } from 'rxjs/operators';
 import { Column, HeaderSetting, ResponseModel } from './responsemodel';
 import { Footer, Train, TrainStatusModel } from './trainsmodel';
-import { DatePipe } from '@angular/common';
-import { ThisReceiver } from '@angular/compiler';
+import { CommonModule, DatePipe } from '@angular/common';
+import {
+  trigger,
+  transition,
+  style,
+  animate,
+  query,
+  stagger,
+  state,
+  keyframes
+} from "@angular/animations";
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  providers: [DatePipe]
+  providers: [DatePipe],
+  animations: [
+    trigger("listAnimation", [
+      transition("* => *", [
+        // each time the binding value changes
+        query(
+          ":leave",
+          [stagger(100, [animate("0.5s", style({ opacity: 0 }))])],
+          { optional: true }
+        ),
+        query(
+          ":enter",
+          [
+            style({ opacity: 0 }),
+            stagger(100, [animate("0.5s", style({ opacity: 1 }))])
+          ],
+          { optional: true }
+        )
+      ])
+    ]),
+    trigger("enterAnimation", [
+      transition(":enter", [
+        style({ transform: "translateX(100%)", opacity: 0 }),
+        animate(
+          "500ms",
+          style({
+            transform: "translateX(0)",
+            opacity: 1,
+            "overflow-x": "hidden"
+          })
+        )
+      ]),
+      transition(":leave", [
+        style({ transform: "translateX(0)", opacity: 1 }),
+        animate("500ms", style({ transform: "translateX(100%)", opacity: 0 }))
+      ])
+    ]),
+    trigger("slideIn", [
+      state("*", style({ "overflow-y": "hidden" })),
+      state("void", style({ "overflow-y": "hidden" })),
+      transition("* => void", [
+        style({ height: "*" }),
+        animate(250, style({ height: 0 }))
+      ]),
+      transition("void => *", [
+        style({ height: "0" }),
+        animate(250, style({ height: "*" }))
+      ])
+    ])
+  ]
 })
 export class AppComponent implements OnInit {
   title = 'DJTrainTVDisplay';
-
+  tableBodyColor = '#fff'
   config: ResponseModel | undefined;
   trainsDetail: TrainStatusModel | undefined;
   currentLang = 'en';
@@ -22,7 +80,7 @@ export class AppComponent implements OnInit {
 
   header: HeaderSetting | undefined;
   columns: Column[] | any;
-  trains: Train[] | undefined;
+  trains: Train[] | any;
   footers: Footer[] | undefined;
   public now: string = '';
   timerInterval: any;
@@ -44,7 +102,7 @@ export class AppComponent implements OnInit {
 
 
     this.timerInterval = setInterval(() => {
-      this.currentLang= (this.currentLang=='hi')?'en':'hi';
+      this.currentLang = (this.currentLang == 'hi') ? 'en' : 'hi';
       this.updateLanguageData();
     }, 5000);
 
@@ -107,9 +165,21 @@ export class AppComponent implements OnInit {
       this.header = this.config.HeaderSettings.find((row: HeaderSetting) =>
         row.Lang == this.currentLang
       );
+      if (!this.header) {
+        this.header = this.config.HeaderSettings.find((row: HeaderSetting) =>
+          row.Lang == ''
+        );
+      }
+
+
       this.columns = this.config.Columns.filter((row: Column) =>
         row.Lang == this.currentLang
       );
+      if (this.columns.length <= 0) {
+        this.columns = this.config.Columns.filter((row: Column) =>
+          row.Lang == ''
+        );
+      }
     }
 
     if (this.trainsDetail) {
@@ -119,6 +189,14 @@ export class AppComponent implements OnInit {
       this.footers = this.trainsDetail.Footer.filter((row: Footer) =>
         row.LANG == this.currentLang
       );
+
+      //       if (this.trains.length == 2) {
+      // this.trains.push()
+      // this.trains.push()
+      // this.trains.push()
+      // this.trains.push()
+      //       }
+
     }
 
 

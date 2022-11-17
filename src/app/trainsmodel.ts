@@ -12,6 +12,11 @@ export interface Train {
     TRAIN_TIME_FONT: string;
     TRAIN_STATUS_FONT: string;
     TRAIN_PLATEFORM_FONT: string;
+    TRAIN_NO_FONTSIZE: string;
+    TRAIN_NAME_FONTSIZE: string;
+    TRAIN_TIME_FONTSIZE: string;
+    TRAIN_STATUS_FONTSIZE: string;
+    TRAIN_PLATEFORM_FONTSIZE: string;
     TRAIN_NO_COLOR: string;
     TRAIN_NAME_COLOR: string;
     TRAIN_TIME_COLOR: string;

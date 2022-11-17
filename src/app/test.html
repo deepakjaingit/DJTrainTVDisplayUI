@@ -1,0 +1,160 @@
+
+
+  .display-body {
+    background-color: black;
+  }
+  .table-body{
+    height: calc(100% - 130px);
+    width: calc(100% - 8px);
+    border: 2px white solid; 
+    border-radius: 20px; 
+  }
+
+  .table {
+    width: calc(100% - 8px);
+    /* border: 2px white solid; */
+    margin: 4px;
+    margin-top: 10px;
+    /* background-color: white; */
+    /* border-radius: 20px; */
+  }
+
+  .table th {
+    border-right: 1px white solid;
+    font-size: 25px;
+    text-align: left;
+    padding-left: 10px;
+    /* background-color: antiquewhite; */
+    border-left: 2px solid white;
+    color: white;
+  }
+
+  .table td {
+    border-right: 2px white solid;
+    border-top: 2px white solid;
+    height: 65px;
+    padding-left: 10px;
+    font-size: 40px;
+    color: white;
+    text-align: left;
+    font-weight: bold;
+  }
+
+  .red td {
+    color: red;
+  }
+
+  .green td {
+    color: rgb(8, 244, 8);
+  }
+
+  .header {
+    height: 75px;
+    background-color: rgb(100, 61, 242);
+    box-shadow: 9px 1px 10px 0px #242424;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+  }
+
+  .footer {
+    left: 0;
+    right: 0;
+    position: fixed;
+    bottom: 0px;
+    z-index: 300;
+    box-shadow: 9px 1px 10px 0px #242424;
+    padding-bottom: 2px;
+    background-color: #6d3def;
+    height: 35px;
+    font-size: 24px;
+    color: white;
+  }
+
+  .content {
+    top: 77px;
+    left: 0px;
+    right: 0px;
+    position: fixed;
+    background-color: black;
+    vertical-align: middle;
+    height: 100%;
+  }
+
+  .content table tbody tr td:first-child {
+    color: rgb(253, 195, 143) !important;
+  }
+
+  .header table {
+    width: 100%;
+    color: white;
+  }
+
+  .header table thead th {
+    font-size: 30px;
+    font-weight: bold;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .header table tfoot td {
+    font: 25px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .header table tbody td {
+    font-size: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }<div class="display-body">
+    <div class="header">
+      <table style="width: 100%;" [cellPadding]="0" [cellSpacing]="0">
+        <thead>
+          <tr>
+            <th colspan="3" style="text-align: center;">{{header?.TitleMiddle}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="width: 30%; text-align: left;">{{header?.SubTitleLeft}}
+              <!-- <a href="javascript:void(0)" (click)="changeLang('hi')">Hindi</a>
+            <a href="javascript:void(0)" (click)="changeLang('en')">Eng</a> -->
+            </td>
+            <td style="width: 40%;  text-align: center; text-decoration: underline;">{{header?.SubTitleMiddle}}</td>
+            <td style="width: 30%;text-align: right;">{{now}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="content" role="main">
+      <div class="table-body">
+        <table class="table" [cellPadding]="0" [cellSpacing]="0">
+          <thead>
+            <tr>
+              <th [style.width.%]="col.ColumnWidth" *ngFor="let col of columns">
+                {{col.ColumnCaption}}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of trains" style="height: 60px;">
+              <td [innerHTML]="t.TRAIN_NO"></td>
+              <td [innerHTML]="t.TRAIN_NAME"></td>
+              <td [innerHTML]="t.TRAIN_TIME"></td>
+              <td [innerHTML]="t.TRAIN_STATUS"></td>
+              <td [innerHTML]="t.TRAIN_PLATEFORM"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="footer">
+      <marquee>
+        <span style="padding-right: 10px; padding-right: 10px;" *ngFor="let f of footers">
+          {{f.FooterText}} |
+        </span>
+      </marquee>
+    </div>
+  </div>
