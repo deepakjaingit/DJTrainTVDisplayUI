@@ -73,40 +73,34 @@ import {
 export class AppComponent implements OnInit {
   title = 'DJTrainTVDisplay';
   tableBodyColor = '#fff'
-  config: ResponseModel | undefined;
-  trainsDetail: TrainStatusModel | undefined;
+  config: any;
+  trainsDetail: any;
   currentLang = 'en';
 
 
-  header: HeaderSetting | undefined;
-  columns: Column[] | any;
-  trains: Train[] | any;
-  footers: Footer[] | undefined;
+  header: any;
+  columns: any;
+  trains: any;
+  footers: any;
+  settings: any;
   public now: string = '';
   timerInterval: any;
   syncInterval: any;
+  lastTrainIndex: any;
+  intervalCount = 0;
 
   constructor(private http: HttpClient, private datePipe: DatePipe) {
     this.onConfigSuccess = this.onConfigSuccess.bind(this);
     this.onTrainsSuccess = this.onTrainsSuccess.bind(this);
-
+    console.log('page loaded')
   }
   ngOnInit(): void {
     this.GetConfig(this.onConfigSuccess, this.onConfigError);
     this.GetTrains(this.onTrainsSuccess, this.onTrainError);
-
-    this.timerInterval = setInterval(() => {
+    setInterval(() => {
       const time: string | any = this.datePipe.transform(new Date(), 'HH:mm:ss')
       this.now = time;
-    }, 1);
-
-
-    this.timerInterval = setInterval(() => {
-      this.currentLang = (this.currentLang == 'hi') ? 'en' : 'hi';
-      this.updateLanguageData();
-    }, 5000);
-
-
+    }, 1000);
   }
 
 
@@ -147,13 +141,24 @@ export class AppComponent implements OnInit {
 
   onConfigSuccess(result: ResponseModel) {
     this.config = result;
-    this.updateLanguageData()
+    this.updateLanguageData();
   }
   onConfigError(result: any) {
 
   }
   onTrainsSuccess(result: any) {
-    this.trainsDetail = result;
+    this.lastTrainIndex = -6;
+    this.trainsDetail = {};
+    this.trainsDetail.Trains = result.Trains;
+    this.trainsDetail.Footer = result.Footer;
+    this.config.Headers = result.Headers;
+    this.config.Settings = result.Settings;
+    this.config.Columns = result.Columns;
+    if (+this.config.Settings[0].ReloadPageCount < this.intervalCount) {
+      this.intervalCount = 0;
+      location.reload();
+    }
+
     this.updateLanguageData();
   }
   onTrainError(result: any) {
@@ -162,15 +167,16 @@ export class AppComponent implements OnInit {
 
   updateLanguageData() {
     if (this.config) {
-      this.header = this.config.HeaderSettings.find((row: HeaderSetting) =>
+      this.header = this.config.Headers.find((row: any) =>
         row.Lang == this.currentLang
       );
       if (!this.header) {
-        this.header = this.config.HeaderSettings.find((row: HeaderSetting) =>
+        this.header = this.config.Headers.find((row: any) =>
           row.Lang == ''
         );
       }
 
+      this.settings = this.config.Settings[0];
 
       this.columns = this.config.Columns.filter((row: Column) =>
         row.Lang == this.currentLang
@@ -183,20 +189,28 @@ export class AppComponent implements OnInit {
     }
 
     if (this.trainsDetail) {
-      this.trains = this.trainsDetail.Trains.filter((row: Train) =>
-        row.LANG == this.currentLang
-      );
+
       this.footers = this.trainsDetail.Footer.filter((row: Footer) =>
         row.LANG == this.currentLang
       );
 
-      //       if (this.trains.length == 2) {
-      // this.trains.push()
-      // this.trains.push()
-      // this.trains.push()
-      // this.trains.push()
-      //       }
+      if (!this.timerInterval) {
+        const inervalTime = (+this.settings.NextRecordIntervalInSeconds) * 1000;
+        this.timerInterval = setInterval(() => {
+          this.intervalCount++;
+          this.currentLang = (this.currentLang == 'hi') ? 'en' : 'hi';
+          this.updateLanguageData();
+        }, 5000);
+      }
 
+      this.lastTrainIndex = this.lastTrainIndex + 6
+      if (this.trainsDetail.Trains.length > this.lastTrainIndex) {
+        this.trains = this.trainsDetail.Trains.filter((row: any, i: number) => i >= this.lastTrainIndex && i <= this.lastTrainIndex + 4);
+      } else {
+        //clearInterval(this.timerInterval);
+        //this.timerInterval = undefined;
+        this.GetTrains(this.onTrainsSuccess, this.onTrainError);
+      }
     }
 
 
