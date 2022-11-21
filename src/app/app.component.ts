@@ -19,56 +19,7 @@ import {
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  providers: [DatePipe],
-  animations: [
-    trigger("listAnimation", [
-      transition("* => *", [
-        // each time the binding value changes
-        query(
-          ":leave",
-          [stagger(100, [animate("0.5s", style({ opacity: 0 }))])],
-          { optional: true }
-        ),
-        query(
-          ":enter",
-          [
-            style({ opacity: 0 }),
-            stagger(100, [animate("0.5s", style({ opacity: 1 }))])
-          ],
-          { optional: true }
-        )
-      ])
-    ]),
-    trigger("enterAnimation", [
-      transition(":enter", [
-        style({ transform: "translateX(100%)", opacity: 0 }),
-        animate(
-          "500ms",
-          style({
-            transform: "translateX(0)",
-            opacity: 1,
-            "overflow-x": "hidden"
-          })
-        )
-      ]),
-      transition(":leave", [
-        style({ transform: "translateX(0)", opacity: 1 }),
-        animate("500ms", style({ transform: "translateX(100%)", opacity: 0 }))
-      ])
-    ]),
-    trigger("slideIn", [
-      state("*", style({ "overflow-y": "hidden" })),
-      state("void", style({ "overflow-y": "hidden" })),
-      transition("* => void", [
-        style({ height: "*" }),
-        animate(250, style({ height: 0 }))
-      ]),
-      transition("void => *", [
-        style({ height: "0" }),
-        animate(250, style({ height: "*" }))
-      ])
-    ])
-  ]
+  providers: [DatePipe]
 })
 export class AppComponent implements OnInit {
   title = 'DJTrainTVDisplay';
@@ -95,40 +46,24 @@ export class AppComponent implements OnInit {
     console.log('page loaded')
   }
   ngOnInit(): void {
-    this.GetConfig(this.onConfigSuccess, this.onConfigError);
-    this.GetTrains(this.onTrainsSuccess, this.onTrainError);
+    this.getData(this.onConfigSuccess, this.onConfigError);
+    this.getData(this.onTrainsSuccess, this.onTrainError);
     setInterval(() => {
       const time: string | any = this.datePipe.transform(new Date(), 'HH:mm:ss')
       this.now = time;
     }, 1000);
   }
 
-
-
-  GetConfig(successEmit: (result: any) => void, FailEmit: (result: any) => void) {
+  getData(successEmit: (result: any) => void, FailEmit: (result: any) => void) {
     const httpOptions = {
       headers: new HttpHeaders({
         'USER_DEVICE_WIDTH': window.screen.availWidth.toString()
       })
     }
-    const url = 'https://localhost:44328/request/config';
-    const request = this.http.get(url, httpOptions)
-      .pipe(take(1)).subscribe(
-        {
-          next: (v) => successEmit(v as any as ResponseModel),
-          error: (e) => FailEmit(e),
-          complete: () => { request.unsubscribe() }
-        }
-      );
-  }
-
-  GetTrains(successEmit: (result: any) => void, FailEmit: (result: any) => void) {
-    const httpOptions = {
-      headers: new HttpHeaders({
-        'USER_DEVICE_WIDTH': window.screen.availWidth.toString()
-      })
+    let url = '/api/request/trains';
+    if (location.hostname == 'localhost') {
+      url = 'https://localhost:44328/request/trains'
     }
-    const url = 'https://localhost:44328/request/trains';
     const request = this.http.get(url, httpOptions)
       .pipe(take(1)).subscribe(
         {
@@ -147,7 +82,7 @@ export class AppComponent implements OnInit {
 
   }
   onTrainsSuccess(result: any) {
-    this.lastTrainIndex = -6;
+    this.lastTrainIndex = -1;
     this.trainsDetail = {};
     this.trainsDetail.Trains = result.Trains;
     this.trainsDetail.Footer = result.Footer;
@@ -190,26 +125,28 @@ export class AppComponent implements OnInit {
 
     if (this.trainsDetail) {
 
-      this.footers = this.trainsDetail.Footer.filter((row: Footer) =>
-        row.LANG == this.currentLang
-      );
+      this.footers = this.trainsDetail.Footer;
 
       if (!this.timerInterval) {
         const inervalTime = (+this.settings.NextRecordIntervalInSeconds) * 1000;
         this.timerInterval = setInterval(() => {
           this.intervalCount++;
-          this.currentLang = (this.currentLang == 'hi') ? 'en' : 'hi';
           this.updateLanguageData();
-        }, 5000);
+        }, inervalTime);
       }
 
-      this.lastTrainIndex = this.lastTrainIndex + 6
+      const noOfRecordPerPage = +this.settings.NoOfRecordPerPage;
+      if (this.lastTrainIndex == -1) {
+        this.lastTrainIndex = 0;
+      } else {
+        this.lastTrainIndex = this.lastTrainIndex + (noOfRecordPerPage + 1)
+      }
       if (this.trainsDetail.Trains.length > this.lastTrainIndex) {
-        this.trains = this.trainsDetail.Trains.filter((row: any, i: number) => i >= this.lastTrainIndex && i <= this.lastTrainIndex + 4);
+        this.trains = this.trainsDetail.Trains.filter((row: any, i: number) => i >= this.lastTrainIndex && i <= this.lastTrainIndex + (noOfRecordPerPage - 1));
       } else {
         //clearInterval(this.timerInterval);
         //this.timerInterval = undefined;
-        this.GetTrains(this.onTrainsSuccess, this.onTrainError);
+        this.getData(this.onTrainsSuccess, this.onTrainError);
       }
     }
 

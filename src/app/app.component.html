@@ -138,10 +138,11 @@
         <tbody>
           <tr>
             <th *ngFor="let col of columns" [style.width.%]="col.ColumnWidth"
-              [style.font-size.px]="col.ColumnHeaderFontSize" [style.background-color]="col.ColumnHeaderBackColor"
-              [style.color]="col.ColumnHeaderFontColor">
+              [style.font-size.px]="col.ColumnHeaderFontSize" 
+              [style.background-color]="col.ColumnHeaderBackColor"
+              [style.color]="col.ColumnHeaderFontColor"
+              [style.text-align]="col.ColumnHeaderTextAlign">
               {{col.ColumnHeaderText}}
-
             </th>
           </tr>
         </tbody>
@@ -151,6 +152,7 @@
               [style.font-size.px]="(t[col.ColumnName + '_FONTSIZE'] =='')? col.ColumnFontSize : t[col.ColumnName+'_FONTSIZE']"
               [style.background-color]="(t[col.ColumnName + '_BACKCOLOR'] =='')? col.ColumnBackColor : t[col.ColumnName+'_BACKCOLOR']"
               [style.color]="(t[col.ColumnName + '_FONTCOLOR'] =='')? col.ColumnFontColor : t[col.ColumnName+'_FONTCOLOR']"
+              [style.text-align]="(t[col.ColumnName + '_TEXTALIGN'] =='')? col.ColumnTextAlign : t[col.ColumnName+'_TEXTALIGN']"
               [attr.colspan]="t[col.ColumnName + '_COLSPAN']"
               [style.display]="t[col.ColumnName + '_COLSPAN']=='0'?'none':'display'">
               {{ t[col.ColumnName]}}
