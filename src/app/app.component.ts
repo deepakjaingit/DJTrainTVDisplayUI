@@ -39,7 +39,10 @@ export class AppComponent implements OnInit {
   syncInterval: any;
   lastTrainIndex: any;
   intervalCount = 0;
-
+  showFixedRowsPerPage: boolean = false;
+  noOfCyclePerFetch: number = 1;
+  fixedRowCountPerPage: number = 5;
+  serverDateTime: Date = new Date();
   constructor(private http: HttpClient, private datePipe: DatePipe) {
     this.onConfigSuccess = this.onConfigSuccess.bind(this);
     this.onTrainsSuccess = this.onTrainsSuccess.bind(this);
@@ -49,7 +52,8 @@ export class AppComponent implements OnInit {
     this.getData(this.onConfigSuccess, this.onConfigError);
     this.getData(this.onTrainsSuccess, this.onTrainError);
     setInterval(() => {
-      const time: string | any = this.datePipe.transform(new Date(), 'HH:mm:ss')
+      this.serverDateTime.setSeconds(this.serverDateTime.getSeconds() + 1);
+      const time: string | any = this.datePipe.transform(this.serverDateTime, 'HH:mm:ss')
       this.now = time;
     }, 1000);
   }
@@ -61,7 +65,7 @@ export class AppComponent implements OnInit {
       })
     }
     let url = '/api/request/trains';
-    if (location.hostname == 'localhost') {
+    if (location.port == '4200') {
       url = 'https://localhost:44328/request/trains'
     }
     const request = this.http.get(url, httpOptions)
@@ -76,6 +80,8 @@ export class AppComponent implements OnInit {
 
   onConfigSuccess(result: ResponseModel) {
     this.config = result;
+    this.serverDateTime = new Date(this.config.Settings[0].ServerDateTime);
+    debugger
     this.updateLanguageData();
   }
   onConfigError(result: any) {
@@ -93,6 +99,9 @@ export class AppComponent implements OnInit {
       this.intervalCount = 0;
       location.reload();
     }
+
+
+
 
     this.updateLanguageData();
   }
@@ -112,6 +121,10 @@ export class AppComponent implements OnInit {
       }
 
       this.settings = this.config.Settings[0];
+
+      this.fixedRowCountPerPage = +this.settings.FixedRowCountPerPage;
+      this.showFixedRowsPerPage = +this.settings.ShowFixedRowsPerPage == 1;
+      this.noOfCyclePerFetch = +this.settings.NoOfCyclePerFetch;
 
       this.columns = this.config.Columns.filter((row: Column) =>
         row.Lang == this.currentLang
@@ -139,19 +152,27 @@ export class AppComponent implements OnInit {
       if (this.lastTrainIndex == -1) {
         this.lastTrainIndex = 0;
       } else {
-        this.lastTrainIndex = this.lastTrainIndex + (noOfRecordPerPage + 1)
+        this.lastTrainIndex = this.lastTrainIndex + noOfRecordPerPage;
       }
       if (this.trainsDetail.Trains.length > this.lastTrainIndex) {
         this.trains = this.trainsDetail.Trains.filter((row: any, i: number) => i >= this.lastTrainIndex && i <= this.lastTrainIndex + (noOfRecordPerPage - 1));
+        if (this.showFixedRowsPerPage) {
+          if (this.trains.length < this.fixedRowCountPerPage) {
+            const lessRecords = this.fixedRowCountPerPage - this.trains.length;
+            for (let index = 0; index < lessRecords; index++) {
+              this.trains.push(
+                {
+                  TRAIN_NO: '1'
+                });
+            }
+          }
+        }
       } else {
         //clearInterval(this.timerInterval);
         //this.timerInterval = undefined;
         this.getData(this.onTrainsSuccess, this.onTrainError);
       }
     }
-
-
-
   }
 
   changeLang(lang: string) {
