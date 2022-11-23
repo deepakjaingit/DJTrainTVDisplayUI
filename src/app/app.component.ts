@@ -43,6 +43,10 @@ export class AppComponent implements OnInit {
   noOfCyclePerFetch: number = 1;
   fixedRowCountPerPage: number = 5;
   serverDateTime: Date = new Date();
+  trainGroupingData: any;
+  timer: NodeJS.Timer | undefined;
+  languageList: any;
+  currentLanguageIndex: any;
   constructor(private http: HttpClient, private datePipe: DatePipe) {
     this.onConfigSuccess = this.onConfigSuccess.bind(this);
     this.onTrainsSuccess = this.onTrainsSuccess.bind(this);
@@ -51,11 +55,15 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     this.getData(this.onConfigSuccess, this.onConfigError);
     this.getData(this.onTrainsSuccess, this.onTrainError);
-    setInterval(() => {
+    this.timer = setInterval(() => {
       this.serverDateTime.setSeconds(this.serverDateTime.getSeconds() + 1);
       const time: string | any = this.datePipe.transform(this.serverDateTime, 'HH:mm:ss')
       this.now = time;
     }, 1000);
+  }
+  ngOnDestroy() {
+    clearInterval(this.timer);
+    clearInterval(this.timerInterval);
   }
 
   getData(successEmit: (result: any) => void, FailEmit: (result: any) => void) {
@@ -81,7 +89,6 @@ export class AppComponent implements OnInit {
   onConfigSuccess(result: ResponseModel) {
     this.config = result;
     this.serverDateTime = new Date(this.config.Settings[0].ServerDateTime);
-    debugger
     this.updateLanguageData();
   }
   onConfigError(result: any) {
@@ -89,24 +96,47 @@ export class AppComponent implements OnInit {
   }
   onTrainsSuccess(result: any) {
     this.lastTrainIndex = -1;
-    this.trainsDetail = {};
-    this.trainsDetail.Trains = result.Trains;
+
+    this.setTrainsData(result);
+
     this.trainsDetail.Footer = result.Footer;
     this.config.Headers = result.Headers;
     this.config.Settings = result.Settings;
     this.config.Columns = result.Columns;
-    if (+this.config.Settings[0].ReloadPageCount < this.intervalCount) {
-      this.intervalCount = 0;
-      location.reload();
-    }
 
-
-
+    this.setReloadPageCount();
 
     this.updateLanguageData();
   }
   onTrainError(result: any) {
 
+  }
+
+  groupBy(xs: any, key: string) {
+    return xs.reduce(function (rv: any, x: any) {
+      (rv[x[key]] = rv[x[key]] || []).push(x);
+      return rv;
+    }, {});
+  }
+
+
+  setTrainsData(result: any) {
+    this.trainsDetail = {};
+    this.trainsDetail.Trains = result.Trains;
+    this.trainGroupingData = this.groupBy(this.trainsDetail.Trains, 'LANG');
+    this.languageList = [];
+    this.currentLanguageIndex = -1;
+    debugger
+    for (const groupName in this.trainGroupingData) {
+      this.languageList.push(groupName);
+    }
+  }
+
+  setReloadPageCount() {
+    if (+this.config.Settings[0].ReloadPageCount < this.intervalCount) {
+      this.intervalCount = 0;
+      location.reload();
+    }
   }
 
   updateLanguageData() {
@@ -148,14 +178,27 @@ export class AppComponent implements OnInit {
         }, inervalTime);
       }
 
-      const noOfRecordPerPage = +this.settings.NoOfRecordPerPage;
-      if (this.lastTrainIndex == -1) {
-        this.lastTrainIndex = 0;
+      debugger
+
+
+      if (this.currentLanguageIndex == -1 || this.currentLanguageIndex == this.languageList.length - 1) {
+        this.currentLanguageIndex = 0
       } else {
-        this.lastTrainIndex = this.lastTrainIndex + noOfRecordPerPage;
+        this.currentLanguageIndex++;
       }
-      if (this.trainsDetail.Trains.length > this.lastTrainIndex) {
-        this.trains = this.trainsDetail.Trains.filter((row: any, i: number) => i >= this.lastTrainIndex && i <= this.lastTrainIndex + (noOfRecordPerPage - 1));
+
+      const noOfRecordPerPage = +this.settings.NoOfRecordPerPage;
+      if (this.currentLanguageIndex == 0) {//Change Only First Language
+        if (this.lastTrainIndex == -1) {
+          this.lastTrainIndex = 0;
+        } else {
+          this.lastTrainIndex = this.lastTrainIndex + noOfRecordPerPage;
+        }
+      }
+
+      const currentLanguageTrainData = this.trainGroupingData[this.languageList[this.currentLanguageIndex]]
+      if (currentLanguageTrainData.length > this.lastTrainIndex) {
+        this.trains = currentLanguageTrainData.filter((row: any, i: number) => i >= this.lastTrainIndex && i <= this.lastTrainIndex + (noOfRecordPerPage - 1));
         if (this.showFixedRowsPerPage) {
           if (this.trains.length < this.fixedRowCountPerPage) {
             const lessRecords = this.fixedRowCountPerPage - this.trains.length;
@@ -169,8 +212,13 @@ export class AppComponent implements OnInit {
         }
       } else {
         //clearInterval(this.timerInterval);
-        //this.timerInterval = undefined;
-        this.getData(this.onTrainsSuccess, this.onTrainError);
+        //Fetch next when Last Language Record
+        if (this.currentLanguageIndex == this.languageList.length - 1) {
+          this.getData(this.onTrainsSuccess, this.onTrainError);
+        } else {
+          //calling next language
+          this.updateLanguageData();
+        }
       }
     }
   }
