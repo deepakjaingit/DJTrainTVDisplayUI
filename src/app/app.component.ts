@@ -212,7 +212,7 @@ export class AppComponent implements OnInit {
         }
       } else {
         //clearInterval(this.timerInterval);
-        //Fetch next when Last Language Record
+        //Fetch next when Last Language Record//
         if (this.currentLanguageIndex == this.languageList.length - 1) {
           this.getData(this.onTrainsSuccess, this.onTrainError);
         } else {
